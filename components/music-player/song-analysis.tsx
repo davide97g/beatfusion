@@ -12,9 +12,18 @@ import { WaveformVisualization } from "./waveform-visualization";
 interface SongAnalysisProps {
   songs: Song[];
   onPreviewInterval?: (song: Song, startTime: number, endTime: number) => void;
+  onStopPreview?: () => void;
+  isPreviewPlaying?: boolean;
+  previewTimeRemaining?: number;
 }
 
-export function SongAnalysis({ songs, onPreviewInterval }: SongAnalysisProps) {
+export function SongAnalysis({
+  songs,
+  onPreviewInterval,
+  onStopPreview,
+  isPreviewPlaying = false,
+  previewTimeRemaining = 0,
+}: SongAnalysisProps) {
   const [selectedSong, setSelectedSong] = useState<Song>(songs[0]);
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(
     null
@@ -52,10 +61,24 @@ export function SongAnalysis({ songs, onPreviewInterval }: SongAnalysisProps) {
               <Music className="w-4 h-4" />
               <div className="flex-1 min-w-0">
                 <h4 className="font-medium truncate">{song.title}</h4>
-                <p className="text-sm text-muted-foreground">{song.artist}</p>
+                <p
+                  className={`text-sm ${
+                    selectedSong.id === song.id
+                      ? "text-accent-foreground/80"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  {song.artist}
+                </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <div
+              className={`flex items-center gap-2 text-xs ${
+                selectedSong.id === song.id
+                  ? "text-accent-foreground/80"
+                  : "text-muted-foreground"
+              }`}
+            >
               <Clock className="w-3 h-3" />
               {formatDuration(song.duration)}
               <BarChart3 className="w-3 h-3 ml-2" />
@@ -132,40 +155,72 @@ export function SongAnalysis({ songs, onPreviewInterval }: SongAnalysisProps) {
               {/* Preview Buttons */}
               {onPreviewInterval && (
                 <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      // Play first 10 seconds of section
-                      const previewStart = selectedSection.startTime;
-                      const previewEnd = Math.min(
-                        selectedSection.startTime + 10,
-                        selectedSection.endTime
-                      );
-                      onPreviewInterval(selectedSong, previewStart, previewEnd);
-                    }}
-                    disabled={selectedSection.duration < 10}
-                  >
-                    <Play className="w-4 h-4 mr-2" />
-                    Preview Start (10s)
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      // Play last 10 seconds of section
-                      const previewStart = Math.max(
-                        selectedSection.endTime - 10,
-                        selectedSection.startTime
-                      );
-                      const previewEnd = selectedSection.endTime;
-                      onPreviewInterval(selectedSong, previewStart, previewEnd);
-                    }}
-                    disabled={selectedSection.duration < 10}
-                  >
-                    <Play className="w-4 h-4 mr-2" />
-                    Preview End (10s)
-                  </Button>
+                  {isPreviewPlaying ? (
+                    // Show single stop button when preview is playing
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        if (onStopPreview) {
+                          onStopPreview();
+                        }
+                      }}
+                    >
+                      <Play className="w-4 h-4 mr-2" />
+                      Stop ({previewTimeRemaining}s)
+                    </Button>
+                  ) : (
+                    // Show two preview buttons when not playing
+                    <>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          // Play first part of section (10s or full duration if shorter)
+                          const previewDuration = Math.min(
+                            10,
+                            selectedSection.duration
+                          );
+                          const previewStart = selectedSection.startTime;
+                          const previewEnd = previewStart + previewDuration;
+                          onPreviewInterval(
+                            selectedSong,
+                            previewStart,
+                            previewEnd
+                          );
+                        }}
+                        disabled={selectedSection.duration < 1}
+                      >
+                        <Play className="w-4 h-4 mr-2" />
+                        Preview Start (
+                        {Math.min(10, Math.ceil(selectedSection.duration))}s)
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          // Play last part of section (10s or full duration if shorter)
+                          const previewDuration = Math.min(
+                            10,
+                            selectedSection.duration
+                          );
+                          const previewStart =
+                            selectedSection.endTime - previewDuration;
+                          const previewEnd = selectedSection.endTime;
+                          onPreviewInterval(
+                            selectedSong,
+                            previewStart,
+                            previewEnd
+                          );
+                        }}
+                        disabled={selectedSection.duration < 1}
+                      >
+                        <Play className="w-4 h-4 mr-2" />
+                        Preview End (
+                        {Math.min(10, Math.ceil(selectedSection.duration))}s)
+                      </Button>
+                    </>
+                  )}
                 </div>
               )}
             </div>

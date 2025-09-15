@@ -274,33 +274,37 @@ export function IntervalSelector({
             size="sm"
             variant="outline"
             onClick={() => {
-              // Play first 10 seconds of selection
+              // Play first part of selection (10s or full duration if shorter)
+              const selectionDuration = customEnd - customStart;
+              const previewDuration = Math.min(10, selectionDuration);
               const previewStart = customStart;
-              const previewEnd = Math.min(customStart + 10, customEnd);
+              const previewEnd = previewStart + previewDuration;
               if (onPreviewInterval) {
                 onPreviewInterval(song, previewStart, previewEnd);
               }
             }}
-            disabled={customEnd - customStart < 10}
+            disabled={customEnd - customStart < 1}
           >
             <Play className="w-4 h-4 mr-2" />
-            Preview Start (10s)
+            Preview Start ({Math.min(10, Math.ceil(customEnd - customStart))}s)
           </Button>
           <Button
             size="sm"
             variant="outline"
             onClick={() => {
-              // Play last 10 seconds of selection
-              const previewStart = Math.max(customEnd - 10, customStart);
+              // Play last part of selection (10s or full duration if shorter)
+              const selectionDuration = customEnd - customStart;
+              const previewDuration = Math.min(10, selectionDuration);
+              const previewStart = customEnd - previewDuration;
               const previewEnd = customEnd;
               if (onPreviewInterval) {
                 onPreviewInterval(song, previewStart, previewEnd);
               }
             }}
-            disabled={customEnd - customStart < 10}
+            disabled={customEnd - customStart < 1}
           >
             <Play className="w-4 h-4 mr-2" />
-            Preview End (10s)
+            Preview End ({Math.min(10, Math.ceil(customEnd - customStart))}s)
           </Button>
         </div>
       </div>

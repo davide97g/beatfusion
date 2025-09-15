@@ -11,6 +11,9 @@ interface MainContentProps {
   currentMix: Mix | null;
   setCurrentMix: (mix: Mix | null) => void;
   onPreviewInterval?: (song: Song, startTime: number, endTime: number) => void;
+  onStopPreview?: () => void;
+  isPreviewPlaying?: boolean;
+  previewTimeRemaining?: number;
 }
 
 export function MainContent({
@@ -18,6 +21,9 @@ export function MainContent({
   currentMix,
   setCurrentMix,
   onPreviewInterval,
+  onStopPreview,
+  isPreviewPlaying = false,
+  previewTimeRemaining = 0,
 }: MainContentProps) {
   const [activeTab, setActiveTab] = useState("analysis");
 
@@ -60,6 +66,9 @@ export function MainContent({
           <SongAnalysis
             songs={selectedSongs}
             onPreviewInterval={onPreviewInterval}
+            onStopPreview={onStopPreview}
+            isPreviewPlaying={isPreviewPlaying}
+            previewTimeRemaining={previewTimeRemaining}
           />
         </TabsContent>
 

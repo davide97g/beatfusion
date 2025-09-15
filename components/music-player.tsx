@@ -17,7 +17,12 @@ export function MusicPlayer() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { previewInterval } = useAudioPlayer();
+  const {
+    previewInterval,
+    stopPreview,
+    isPreviewPlaying,
+    previewTimeRemaining,
+  } = useAudioPlayer();
 
   const handleSongSelect = (song: Song, selected: boolean) => {
     if (selected) {
@@ -189,6 +194,9 @@ export function MusicPlayer() {
           currentMix={currentMix}
           setCurrentMix={setCurrentMix}
           onPreviewInterval={previewInterval}
+          onStopPreview={stopPreview}
+          isPreviewPlaying={isPreviewPlaying}
+          previewTimeRemaining={previewTimeRemaining}
         />
 
         {/* Playback Controls */}

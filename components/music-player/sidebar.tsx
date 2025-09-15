@@ -83,24 +83,50 @@ export function Sidebar({
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <Music className="w-4 h-4 text-sidebar-accent" />
-                    <h3 className="font-medium text-sidebar-primary-foreground truncate">
+                    <Music
+                      className={`w-4 h-4 ${
+                        isSelected ? "text-white" : "text-sidebar-accent"
+                      }`}
+                    />
+                    <h3
+                      className={`font-medium truncate ${
+                        isSelected
+                          ? "text-white"
+                          : "text-sidebar-primary-foreground"
+                      }`}
+                    >
                       {song.title}
                     </h3>
                   </div>
 
-                  <p className="text-sm text-muted-foreground mb-2">
+                  <p
+                    className={`text-sm mb-2 ${
+                      isSelected ? "text-white/80" : "text-muted-foreground"
+                    }`}
+                  >
                     {song.artist}
                   </p>
-                  <p className="text-xs text-muted-foreground mb-2">
+                  <p
+                    className={`text-xs mb-2 ${
+                      isSelected ? "text-white/80" : "text-muted-foreground"
+                    }`}
+                  >
                     Duration: {formatDuration(song.duration)}
                   </p>
 
                   {/* Analysis Status */}
                   {song.isAnalyzing && (
                     <div className="flex items-center gap-2 mb-2">
-                      <Loader2 className="w-3 h-3 animate-spin text-blue-500" />
-                      <span className="text-xs text-blue-600">
+                      <Loader2
+                        className={`w-3 h-3 animate-spin ${
+                          isSelected ? "text-white" : "text-blue-500"
+                        }`}
+                      />
+                      <span
+                        className={`text-xs ${
+                          isSelected ? "text-white" : "text-blue-600"
+                        }`}
+                      >
                         Analyzing...
                       </span>
                     </div>
@@ -110,8 +136,16 @@ export function Sidebar({
                     !song.analysis &&
                     song.id.startsWith("uploaded-") && (
                       <div className="flex items-center gap-2 mb-2">
-                        <AlertCircle className="w-3 h-3 text-orange-500" />
-                        <span className="text-xs text-orange-600">
+                        <AlertCircle
+                          className={`w-3 h-3 ${
+                            isSelected ? "text-white" : "text-orange-500"
+                          }`}
+                        />
+                        <span
+                          className={`text-xs ${
+                            isSelected ? "text-white" : "text-orange-600"
+                          }`}
+                        >
                           Analysis failed
                         </span>
                       </div>
@@ -123,7 +157,11 @@ export function Sidebar({
                         <Badge
                           key={section.id}
                           variant="outline"
-                          className="text-xs text-foreground bg-background"
+                          className={`text-xs ${
+                            isSelected
+                              ? "text-white border-white/30"
+                              : "text-foreground bg-background"
+                          }`}
                         >
                           {section.type}
                         </Badge>
@@ -132,7 +170,11 @@ export function Sidebar({
                   )}
 
                   {song.analysis && (
-                    <div className="mt-2 text-xs text-muted-foreground">
+                    <div
+                      className={`mt-2 text-xs ${
+                        isSelected ? "text-white/80" : "text-muted-foreground"
+                      }`}
+                    >
                       <div>BPM: {Math.round(song.analysis.tempo_bpm)}</div>
                       <div>Sections: {song.sections?.length || 0}</div>
                     </div>

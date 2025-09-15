@@ -14,7 +14,12 @@ export function MusicPlayer() {
   const [selectedSongs, setSelectedSongs] = useState<Song[]>([]);
   const [currentMix, setCurrentMix] = useState<Mix | null>(null);
   const { saveMix } = useMixStorage();
-  const { previewInterval } = useAudioPlayer();
+  const {
+    previewInterval,
+    stopPreview,
+    isPreviewPlaying,
+    previewTimeRemaining,
+  } = useAudioPlayer();
 
   const handleSongSelect = (song: Song, selected: boolean) => {
     console.log(
@@ -95,6 +100,9 @@ export function MusicPlayer() {
           currentMix={currentMix}
           setCurrentMix={handleSetCurrentMix}
           onPreviewInterval={previewInterval}
+          onStopPreview={stopPreview}
+          isPreviewPlaying={isPreviewPlaying}
+          previewTimeRemaining={previewTimeRemaining}
         />
 
         {/* Playback Controls */}

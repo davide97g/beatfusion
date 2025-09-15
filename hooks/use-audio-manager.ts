@@ -12,6 +12,9 @@ interface AudioManagerState {
   isLoading: boolean;
   currentSong: Song | null;
   currentSection: MixSection | null;
+  isPreviewPlaying: boolean;
+  previewTimeRemaining: number;
+  previewDuration: number;
 }
 
 export function useAudioManager() {
@@ -24,12 +27,18 @@ export function useAudioManager() {
     isLoading: false,
     currentSong: null,
     currentSection: null,
+    isPreviewPlaying: false,
+    previewTimeRemaining: 0,
+    previewDuration: 0,
   });
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const currentMixRef = useRef<Mix | null>(null);
   const timeUpdateIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const sectionStartTimeRef = useRef<number>(0);
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+  const previewIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const previewCountdownRef = useRef<NodeJS.Timeout | null>(null);
 
   const initializeAudio = useCallback(() => {
     if (!audioRef.current) {
@@ -321,6 +330,31 @@ export function useAudioManager() {
     [playSection]
   );
 
+  const stopPreview = useCallback(() => {
+    if (previewAudioRef.current) {
+      previewAudioRef.current.pause();
+      previewAudioRef.current.currentTime = 0;
+      previewAudioRef.current = null;
+    }
+
+    if (previewIntervalRef.current) {
+      clearTimeout(previewIntervalRef.current);
+      previewIntervalRef.current = null;
+    }
+
+    if (previewCountdownRef.current) {
+      clearInterval(previewCountdownRef.current);
+      previewCountdownRef.current = null;
+    }
+
+    setState((prev) => ({
+      ...prev,
+      isPreviewPlaying: false,
+      previewTimeRemaining: 0,
+      previewDuration: 0,
+    }));
+  }, []);
+
   const previewInterval = useCallback(
     (song: Song, startTime: number, endTime: number) => {
       if (!song.url) {
@@ -328,53 +362,72 @@ export function useAudioManager() {
         return;
       }
 
+      // Stop any existing preview
+      stopPreview();
+
       // Create a temporary audio element for preview
       const previewAudio = new Audio(song.url);
       previewAudio.currentTime = startTime;
+      previewAudioRef.current = previewAudio;
 
-      const playPreview = () => {
-        previewAudio.play().catch(console.error);
-      };
+      const duration = endTime - startTime;
 
-      const stopPreview = () => {
-        previewAudio.pause();
-        previewAudio.currentTime = 0;
-      };
+      // Update state to show preview is playing
+      setState((prev) => ({
+        ...prev,
+        isPreviewPlaying: true,
+        previewTimeRemaining: Math.ceil(duration),
+        previewDuration: Math.ceil(duration),
+      }));
+
+      // Start countdown timer
+      previewCountdownRef.current = setInterval(() => {
+        setState((prev) => {
+          const newTimeRemaining = prev.previewTimeRemaining - 1;
+          if (newTimeRemaining <= 0) {
+            return {
+              ...prev,
+              isPreviewPlaying: false,
+              previewTimeRemaining: 0,
+              previewDuration: 0,
+            };
+          }
+          return {
+            ...prev,
+            previewTimeRemaining: newTimeRemaining,
+          };
+        });
+      }, 1000);
 
       // Set up timeout to stop at end time
-      const duration = endTime - startTime;
-      const timeoutId = setTimeout(() => {
+      previewIntervalRef.current = setTimeout(() => {
         stopPreview();
       }, duration * 1000);
 
-      // Store timeout ID for cleanup
-      (previewAudio as any)._previewTimeout = timeoutId;
-
       // Handle audio events
-      previewAudio.addEventListener("ended", stopPreview);
-      previewAudio.addEventListener("error", (e) => {
+      const handleEnded = () => {
+        stopPreview();
+      };
+
+      const handleError = (e: Event) => {
         console.error("Preview audio error:", e);
         stopPreview();
-      });
+      };
+
+      previewAudio.addEventListener("ended", handleEnded);
+      previewAudio.addEventListener("error", handleError);
 
       // Start playing
-      playPreview();
-
-      // Return cleanup function
-      return () => {
-        clearTimeout(timeoutId);
-        stopPreview();
-        previewAudio.removeEventListener("ended", stopPreview);
-        previewAudio.removeEventListener("error", stopPreview);
-      };
+      previewAudio.play().catch(console.error);
     },
-    []
+    [stopPreview]
   );
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       stopTimeUpdate();
+      stopPreview();
       if (audioRef.current) {
         audioRef.current.pause();
         if ((audioRef.current as any)._sectionTimeout) {
@@ -383,7 +436,7 @@ export function useAudioManager() {
         audioRef.current = null;
       }
     };
-  }, [stopTimeUpdate]);
+  }, [stopTimeUpdate, stopPreview]);
 
   return {
     ...state,
@@ -395,6 +448,7 @@ export function useAudioManager() {
     setVolume,
     skipToSection,
     previewInterval,
+    stopPreview,
     currentMix: currentMixRef.current,
   };
 }
