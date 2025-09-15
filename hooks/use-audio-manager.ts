@@ -321,6 +321,56 @@ export function useAudioManager() {
     [playSection]
   );
 
+  const previewInterval = useCallback(
+    (song: Song, startTime: number, endTime: number) => {
+      if (!song.url) {
+        console.error("No audio URL available for preview");
+        return;
+      }
+
+      // Create a temporary audio element for preview
+      const previewAudio = new Audio(song.url);
+      previewAudio.currentTime = startTime;
+
+      const playPreview = () => {
+        previewAudio.play().catch(console.error);
+      };
+
+      const stopPreview = () => {
+        previewAudio.pause();
+        previewAudio.currentTime = 0;
+      };
+
+      // Set up timeout to stop at end time
+      const duration = endTime - startTime;
+      const timeoutId = setTimeout(() => {
+        stopPreview();
+      }, duration * 1000);
+
+      // Store timeout ID for cleanup
+      (previewAudio as any)._previewTimeout = timeoutId;
+
+      // Handle audio events
+      previewAudio.addEventListener("ended", stopPreview);
+      previewAudio.addEventListener("error", (e) => {
+        console.error("Preview audio error:", e);
+        stopPreview();
+      });
+
+      // Start playing
+      playPreview();
+
+      // Return cleanup function
+      return () => {
+        clearTimeout(timeoutId);
+        stopPreview();
+        previewAudio.removeEventListener("ended", stopPreview);
+        previewAudio.removeEventListener("error", stopPreview);
+      };
+    },
+    []
+  );
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -344,6 +394,7 @@ export function useAudioManager() {
     seekTo,
     setVolume,
     skipToSection,
+    previewInterval,
     currentMix: currentMixRef.current,
   };
 }

@@ -6,20 +6,24 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { SongSection } from "@/types/music";
-import { RotateCcw, Scissors } from "lucide-react";
+import type { Song, SongSection } from "@/types/music";
+import { Play, RotateCcw, Scissors } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 interface IntervalSelectorProps {
   section: SongSection;
+  song: Song;
   onIntervalSelect: (startTime: number, endTime: number) => void;
   onCancel: () => void;
+  onPreviewInterval?: (song: Song, startTime: number, endTime: number) => void;
 }
 
 export function IntervalSelector({
   section,
+  song,
   onIntervalSelect,
   onCancel,
+  onPreviewInterval,
 }: IntervalSelectorProps) {
   const [customStart, setCustomStart] = useState(section.startTime);
   const [customEnd, setCustomEnd] = useState(section.endTime);
@@ -55,26 +59,9 @@ export function IntervalSelector({
     // Clear canvas
     ctx.clearRect(0, 0, width, height);
 
-    // Generate mock waveform data for this section
-    const samples = 100;
-    const waveformData = Array.from(
-      { length: samples },
-      () => Math.random() * 80 + 20
-    );
-
-    // Draw background waveform (muted)
-    const barWidth = width / samples;
+    // Draw placeholder waveform background
     ctx.fillStyle = "#e5e7eb";
-    waveformData.forEach((amplitude, index) => {
-      const x = index * barWidth;
-      const barHeight = (amplitude / 100) * (height * 0.8);
-      ctx.fillRect(
-        x,
-        centerY - barHeight / 2,
-        Math.max(barWidth - 1, 1),
-        barHeight
-      );
-    });
+    ctx.fillRect(0, centerY - 2, width, 4);
 
     // Draw selected interval
     const startX =
@@ -85,20 +72,9 @@ export function IntervalSelector({
     ctx.fillStyle = "rgba(99, 102, 241, 0.3)";
     ctx.fillRect(startX, 0, endX - startX, height);
 
-    // Draw selected waveform
+    // Draw selected waveform area
     ctx.fillStyle = "#6366f1";
-    waveformData.forEach((amplitude, index) => {
-      const x = index * barWidth;
-      if (x >= startX && x <= endX) {
-        const barHeight = (amplitude / 100) * (height * 0.8);
-        ctx.fillRect(
-          x,
-          centerY - barHeight / 2,
-          Math.max(barWidth - 1, 1),
-          barHeight
-        );
-      }
-    });
+    ctx.fillRect(startX, centerY - 2, endX - startX, 4);
 
     // Draw selection handles
     ctx.fillStyle = "#dc2626";
@@ -287,6 +263,45 @@ export function IntervalSelector({
           <div className="text-xs text-muted-foreground">
             {formatTime(customEnd)}
           </div>
+        </div>
+      </div>
+
+      {/* Preview Buttons */}
+      <div className="space-y-4">
+        <Label>Preview Selection</Label>
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              // Play first 10 seconds of selection
+              const previewStart = customStart;
+              const previewEnd = Math.min(customStart + 10, customEnd);
+              if (onPreviewInterval) {
+                onPreviewInterval(song, previewStart, previewEnd);
+              }
+            }}
+            disabled={customEnd - customStart < 10}
+          >
+            <Play className="w-4 h-4 mr-2" />
+            Preview Start (10s)
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              // Play last 10 seconds of selection
+              const previewStart = Math.max(customEnd - 10, customStart);
+              const previewEnd = customEnd;
+              if (onPreviewInterval) {
+                onPreviewInterval(song, previewStart, previewEnd);
+              }
+            }}
+            disabled={customEnd - customStart < 10}
+          >
+            <Play className="w-4 h-4 mr-2" />
+            Preview End (10s)
+          </Button>
         </div>
       </div>
     </Card>

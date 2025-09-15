@@ -98,8 +98,10 @@ export function WaveformVisualization({
         ctx.lineTo(startX, height);
         ctx.stroke();
 
-        // Draw section labels
-        ctx.fillStyle = "#1f2937";
+        // Draw section labels with appropriate text color
+        const isPurpleSection =
+          section.type === "bridge" || section.type === "outro";
+        ctx.fillStyle = isPurpleSection ? "#ffffff" : "#1f2937";
         ctx.font = "12px sans-serif";
         ctx.fillText(section.type, startX + 4, 16);
       });

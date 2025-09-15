@@ -1,7 +1,7 @@
 "use client";
 
+import { useAudioPlayer } from "@/hooks/use-audio-player";
 import { AnalysisService } from "@/lib/analysis-service";
-import { demoSongs } from "@/lib/demo-data";
 import { generateSectionsFromAnalysis } from "@/lib/song-analysis-utils";
 import type { Mix, Song } from "@/types/music";
 import { useRef, useState } from "react";
@@ -11,12 +11,13 @@ import { PlaybackControls } from "./music-player/playback-controls";
 import { Sidebar } from "./music-player/sidebar";
 
 export function MusicPlayer() {
-  const [songs, setSongs] = useState<Song[]>(demoSongs);
+  const [songs, setSongs] = useState<Song[]>([]);
   const [selectedSongs, setSelectedSongs] = useState<Song[]>([]);
   const [currentMix, setCurrentMix] = useState<Mix | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { previewInterval } = useAudioPlayer();
 
   const handleSongSelect = (song: Song, selected: boolean) => {
     if (selected) {
@@ -27,7 +28,6 @@ export function MusicPlayer() {
   };
 
   const handleAnalyzeSongs = () => {
-    // Songs are already analyzed with demo data
     console.log("Analyzing songs:", selectedSongs);
   };
 
@@ -188,6 +188,7 @@ export function MusicPlayer() {
           selectedSongs={selectedSongs}
           currentMix={currentMix}
           setCurrentMix={setCurrentMix}
+          onPreviewInterval={previewInterval}
         />
 
         {/* Playback Controls */}

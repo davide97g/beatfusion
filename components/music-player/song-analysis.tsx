@@ -1,18 +1,20 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { Song } from "@/types/music";
-import { BarChart3, Clock, Music } from "lucide-react";
+import { BarChart3, Clock, Music, Play } from "lucide-react";
 import { useState } from "react";
 import { ToneAttributesPanel } from "./tone-attributes-panel";
 import { WaveformVisualization } from "./waveform-visualization";
 
 interface SongAnalysisProps {
   songs: Song[];
+  onPreviewInterval?: (song: Song, startTime: number, endTime: number) => void;
 }
 
-export function SongAnalysis({ songs }: SongAnalysisProps) {
+export function SongAnalysis({ songs, onPreviewInterval }: SongAnalysisProps) {
   const [selectedSong, setSelectedSong] = useState<Song>(songs[0]);
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(
     null
@@ -120,11 +122,53 @@ export function SongAnalysis({ songs }: SongAnalysisProps) {
         {/* Tone Attributes Panel */}
         {selectedSection && (
           <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">
-              Section Analysis:{" "}
-              {selectedSection.type.charAt(0).toUpperCase() +
-                selectedSection.type.slice(1)}
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">
+                Section Analysis:{" "}
+                {selectedSection.type.charAt(0).toUpperCase() +
+                  selectedSection.type.slice(1)}
+              </h3>
+
+              {/* Preview Buttons */}
+              {onPreviewInterval && (
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      // Play first 10 seconds of section
+                      const previewStart = selectedSection.startTime;
+                      const previewEnd = Math.min(
+                        selectedSection.startTime + 10,
+                        selectedSection.endTime
+                      );
+                      onPreviewInterval(selectedSong, previewStart, previewEnd);
+                    }}
+                    disabled={selectedSection.duration < 10}
+                  >
+                    <Play className="w-4 h-4 mr-2" />
+                    Preview Start (10s)
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      // Play last 10 seconds of section
+                      const previewStart = Math.max(
+                        selectedSection.endTime - 10,
+                        selectedSection.startTime
+                      );
+                      const previewEnd = selectedSection.endTime;
+                      onPreviewInterval(selectedSong, previewStart, previewEnd);
+                    }}
+                    disabled={selectedSection.duration < 10}
+                  >
+                    <Play className="w-4 h-4 mr-2" />
+                    Preview End (10s)
+                  </Button>
+                </div>
+              )}
+            </div>
             <ToneAttributesPanel section={selectedSection} />
           </Card>
         )}

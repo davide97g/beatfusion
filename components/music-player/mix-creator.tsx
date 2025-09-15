@@ -35,16 +35,21 @@ export function MixCreator({
     song: Song;
     section: any;
   } | null>(null);
-  const { playMix, currentTime, isPlaying, currentSectionIndex } =
-    useAudioPlayer();
+  const {
+    playMix,
+    currentTime,
+    isPlaying,
+    currentSectionIndex,
+    previewInterval,
+  } = useAudioPlayer();
 
   const createNewMix = () => {
     const newMix: Mix = {
       id: Date.now().toString(),
       name: mixName,
       sections: mixSections,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
     setCurrentMix(newMix);
   };
@@ -62,8 +67,8 @@ export function MixCreator({
       id: "preview",
       name: mixName,
       sections: mixSections,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     console.log(
@@ -173,8 +178,10 @@ export function MixCreator({
       <div className="h-full">
         <IntervalSelector
           section={selectingInterval.section}
+          song={selectingInterval.song}
           onIntervalSelect={handleIntervalSelect}
           onCancel={() => setSelectingInterval(null)}
+          onPreviewInterval={previewInterval}
         />
       </div>
     );
