@@ -1,42 +1,51 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { MixLibrary } from "./mix-library"
-import { useMixStorage } from "@/hooks/use-mix-storage"
-import { Upload, Save, FolderOpen, Music } from "lucide-react"
-import type { Mix } from "@/types/music"
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { useMixStorage } from "@/hooks/use-mix-storage";
+import type { Mix } from "@/types/music";
+import { FolderOpen, Music, Save, Upload } from "lucide-react";
+import { useState } from "react";
+import { MixLibrary } from "./mix-library";
 
 interface HeaderProps {
-  currentMix: Mix | null
-  onLoadMix?: (mix: Mix) => void
+  currentMix: Mix | null;
+  onLoadMix?: (mix: Mix) => void;
+  onUploadClick?: () => void;
 }
 
-export function Header({ currentMix, onLoadMix }: HeaderProps) {
-  const [showLibrary, setShowLibrary] = useState(false)
-  const { saveMix } = useMixStorage()
+export function Header({ currentMix, onLoadMix, onUploadClick }: HeaderProps) {
+  const [showLibrary, setShowLibrary] = useState(false);
+  const { saveMix } = useMixStorage();
 
   const handleSaveMix = () => {
     if (currentMix) {
-      saveMix(currentMix)
-      alert(`Mix "${currentMix.name}" saved successfully!`)
+      saveMix(currentMix);
+      alert(`Mix "${currentMix.name}" saved successfully!`);
     }
-  }
+  };
 
   const handleLoadMix = (mix: Mix) => {
     if (onLoadMix) {
-      onLoadMix(mix)
+      onLoadMix(mix);
     }
-    setShowLibrary(false)
-  }
+    setShowLibrary(false);
+  };
 
   return (
     <header className="h-16 border-b border-border bg-card px-6 flex items-center justify-between">
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
           <Music className="w-6 h-6 text-accent" />
-          <h1 className="text-xl font-semibold text-foreground">Music Mixer Pro</h1>
+          <h1 className="text-xl font-semibold text-foreground">
+            Music Mixer Pro
+          </h1>
         </div>
         {currentMix && (
           <div className="flex items-center gap-2">
@@ -47,7 +56,7 @@ export function Header({ currentMix, onLoadMix }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" onClick={onUploadClick}>
           <Upload className="w-4 h-4 mr-2" />
           Upload Songs
         </Button>
@@ -67,11 +76,16 @@ export function Header({ currentMix, onLoadMix }: HeaderProps) {
           </DialogContent>
         </Dialog>
 
-        <Button variant="default" size="sm" disabled={!currentMix} onClick={handleSaveMix}>
+        <Button
+          variant="default"
+          size="sm"
+          disabled={!currentMix}
+          onClick={handleSaveMix}
+        >
           <Save className="w-4 h-4 mr-2" />
           Save Mix
         </Button>
       </div>
     </header>
-  )
+  );
 }
