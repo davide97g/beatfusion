@@ -1,58 +1,69 @@
-"use client"
+"use client";
 
-import { useDrag, useDrop } from "react-dnd"
-import type { MixSection } from "@/types/music"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { GripVertical, Edit, Trash2 } from "lucide-react"
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import type { MixSection } from "@/types/music";
+import { Edit, GripVertical, Trash2 } from "lucide-react";
+import { useDrag, useDrop } from "react-dnd";
 
 interface DraggableSectionProps {
-  mixSection: MixSection
-  index: number
-  onMove: (dragIndex: number, dropIndex: number) => void
-  onEdit: (mixSection: MixSection) => void
-  onDelete: (mixSectionId: string) => void
+  mixSection: MixSection;
+  index: number;
+  onMove: (dragIndex: number, dropIndex: number) => void;
+  onEdit: (mixSection: MixSection) => void;
+  onDelete: (mixSectionId: string) => void;
 }
 
 interface DragItem {
-  type: string
-  index: number
-  id: string
+  type: string;
+  index: number;
+  id: string;
 }
 
-export function DraggableSection({ mixSection, index, onMove, onEdit, onDelete }: DraggableSectionProps) {
+export function DraggableSection({
+  mixSection,
+  index,
+  onMove,
+  onEdit,
+  onDelete,
+}: DraggableSectionProps) {
   const [{ isDragging }, drag, dragPreview] = useDrag({
     type: "section",
     item: { type: "section", index, id: mixSection.id },
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
-  })
+  });
 
   const [{ isOver }, drop] = useDrop({
     accept: "section",
     hover: (item: DragItem) => {
       if (item.index !== index) {
-        onMove(item.index, index)
-        item.index = index
+        onMove(item.index, index);
+        item.index = index;
       }
     },
     collect: (monitor) => ({
       isOver: monitor.isOver(),
     }),
-  })
+  });
 
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, "0")}`
-  }
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    const ms = Math.floor((seconds % 1) * 1000);
+    return `${mins}:${secs.toString().padStart(2, "0")}.${ms
+      .toString()
+      .padStart(3, "0")}`;
+  };
 
   return (
     <div ref={(node) => drag(drop(node))}>
       <Card
-        className={`p-4 transition-all ${isDragging ? "opacity-50" : ""} ${isOver ? "border-accent" : ""} cursor-move`}
+        className={`p-4 transition-all ${isDragging ? "opacity-50" : ""} ${
+          isOver ? "border-accent" : ""
+        } cursor-move`}
       >
         <div className="flex items-center gap-4">
           <div ref={drag} className="cursor-grab active:cursor-grabbing">
@@ -62,32 +73,50 @@ export function DraggableSection({ mixSection, index, onMove, onEdit, onDelete }
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <span className="font-medium">{mixSection.song.title}</span>
-              <Badge variant="outline" className="text-foreground bg-background">
+              <Badge
+                variant="outline"
+                className="text-foreground bg-background"
+              >
                 {mixSection.section.type}
               </Badge>
-              <Badge variant="outline" className="text-xs text-foreground bg-background">
+              <Badge
+                variant="outline"
+                className="text-xs text-foreground bg-background"
+              >
                 {mixSection.section.toneAttributes.mood}
               </Badge>
             </div>
             <div className="text-sm text-muted-foreground">
-              {formatTime(mixSection.section.startTime)} - {formatTime(mixSection.section.endTime)} (
+              {formatTime(mixSection.section.startTime)} -{" "}
+              {formatTime(mixSection.section.endTime)} (
               {formatTime(mixSection.section.duration)})
             </div>
             <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
               <span>Energy: {mixSection.section.toneAttributes.energy}%</span>
-              <span>Intensity: {mixSection.section.toneAttributes.intensity}%</span>
+              <span>
+                Intensity: {mixSection.section.toneAttributes.intensity}%
+              </span>
               {mixSection.section.toneAttributes.strongStart && (
-                <Badge variant="outline" className="text-xs text-foreground bg-background">
+                <Badge
+                  variant="outline"
+                  className="text-xs text-foreground bg-background"
+                >
                   Strong Start
                 </Badge>
               )}
               {mixSection.section.toneAttributes.buildingUp && (
-                <Badge variant="outline" className="text-xs text-foreground bg-background">
+                <Badge
+                  variant="outline"
+                  className="text-xs text-foreground bg-background"
+                >
                   Building Up
                 </Badge>
               )}
               {mixSection.section.toneAttributes.slowingDown && (
-                <Badge variant="outline" className="text-xs text-foreground bg-background">
+                <Badge
+                  variant="outline"
+                  className="text-xs text-foreground bg-background"
+                >
                   Slowing Down
                 </Badge>
               )}
@@ -95,7 +124,11 @@ export function DraggableSection({ mixSection, index, onMove, onEdit, onDelete }
           </div>
 
           <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => onEdit(mixSection)}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onEdit(mixSection)}
+            >
               <Edit className="w-3 h-3" />
             </Button>
             <Button
@@ -110,5 +143,5 @@ export function DraggableSection({ mixSection, index, onMove, onEdit, onDelete }
         </div>
       </Card>
     </div>
-  )
+  );
 }

@@ -1,21 +1,24 @@
-import type { SongSection } from "@/types/music"
-import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
-import { Card } from "@/components/ui/card"
-import { TrendingUp, TrendingDown, Zap, Volume2 } from "lucide-react"
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import type { SongSection } from "@/types/music";
+import { TrendingDown, TrendingUp, Volume2, Zap } from "lucide-react";
 
 interface ToneAttributesPanelProps {
-  section: SongSection
+  section: SongSection;
 }
 
 export function ToneAttributesPanel({ section }: ToneAttributesPanelProps) {
-  const { toneAttributes } = section
+  const { toneAttributes } = section;
 
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, "0")}`
-  }
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    const ms = Math.floor((seconds % 1) * 1000);
+    return `${mins}:${secs.toString().padStart(2, "0")}.${ms
+      .toString()
+      .padStart(3, "0")}`;
+  };
 
   return (
     <div className="space-y-6">
@@ -23,15 +26,21 @@ export function ToneAttributesPanel({ section }: ToneAttributesPanelProps) {
       <div className="grid grid-cols-3 gap-4">
         <Card className="p-4">
           <div className="text-sm text-muted-foreground">Start Time</div>
-          <div className="text-lg font-semibold">{formatTime(section.startTime)}</div>
+          <div className="text-lg font-semibold">
+            {formatTime(section.startTime)}
+          </div>
         </Card>
         <Card className="p-4">
           <div className="text-sm text-muted-foreground">End Time</div>
-          <div className="text-lg font-semibold">{formatTime(section.endTime)}</div>
+          <div className="text-lg font-semibold">
+            {formatTime(section.endTime)}
+          </div>
         </Card>
         <Card className="p-4">
           <div className="text-sm text-muted-foreground">Duration</div>
-          <div className="text-lg font-semibold">{formatTime(section.duration)}</div>
+          <div className="text-lg font-semibold">
+            {formatTime(section.duration)}
+          </div>
         </Card>
       </div>
 
@@ -41,7 +50,9 @@ export function ToneAttributesPanel({ section }: ToneAttributesPanelProps) {
           <div className="flex items-center gap-2">
             <Zap className="w-4 h-4 text-accent" />
             <span className="font-medium">Energy Level</span>
-            <span className="text-sm text-muted-foreground">({toneAttributes.energy}%)</span>
+            <span className="text-sm text-muted-foreground">
+              ({toneAttributes.energy}%)
+            </span>
           </div>
           <Progress value={toneAttributes.energy} className="h-3" />
         </div>
@@ -50,7 +61,9 @@ export function ToneAttributesPanel({ section }: ToneAttributesPanelProps) {
           <div className="flex items-center gap-2">
             <Volume2 className="w-4 h-4 text-accent" />
             <span className="font-medium">Intensity</span>
-            <span className="text-sm text-muted-foreground">({toneAttributes.intensity}%)</span>
+            <span className="text-sm text-muted-foreground">
+              ({toneAttributes.intensity}%)
+            </span>
           </div>
           <Progress value={toneAttributes.intensity} className="h-3" />
         </div>
@@ -85,9 +98,10 @@ export function ToneAttributesPanel({ section }: ToneAttributesPanelProps) {
       <div className="space-y-3">
         <h4 className="font-medium">Mood</h4>
         <Badge variant="default" className="text-sm px-3 py-1">
-          {toneAttributes.mood.charAt(0).toUpperCase() + toneAttributes.mood.slice(1)}
+          {toneAttributes.mood.charAt(0).toUpperCase() +
+            toneAttributes.mood.slice(1)}
         </Badge>
       </div>
     </div>
-  )
+  );
 }

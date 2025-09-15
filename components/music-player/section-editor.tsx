@@ -1,24 +1,36 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import type { SongSection, ToneAttributes } from "@/types/music"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Slider } from "@/components/ui/slider"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
-import { Save, X } from "lucide-react"
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import type { SongSection, ToneAttributes } from "@/types/music";
+import { Save, X } from "lucide-react";
+import { useState } from "react";
 
 interface SectionEditorProps {
-  section: SongSection
-  onSave: (updatedSection: SongSection) => void
-  onCancel: () => void
+  section: SongSection;
+  onSave: (updatedSection: SongSection) => void;
+  onCancel: () => void;
 }
 
-export function SectionEditor({ section, onSave, onCancel }: SectionEditorProps) {
-  const [editedSection, setEditedSection] = useState<SongSection>({ ...section })
+export function SectionEditor({
+  section,
+  onSave,
+  onCancel,
+}: SectionEditorProps) {
+  const [editedSection, setEditedSection] = useState<SongSection>({
+    ...section,
+  });
 
   const handleToneAttributeChange = (key: keyof ToneAttributes, value: any) => {
     setEditedSection({
@@ -27,22 +39,25 @@ export function SectionEditor({ section, onSave, onCancel }: SectionEditorProps)
         ...editedSection.toneAttributes,
         [key]: value,
       },
-    })
-  }
+    });
+  };
 
   const handleTimeChange = (field: "startTime" | "endTime", value: number) => {
-    const newSection = { ...editedSection, [field]: value }
+    const newSection = { ...editedSection, [field]: value };
     if (field === "startTime" || field === "endTime") {
-      newSection.duration = newSection.endTime - newSection.startTime
+      newSection.duration = newSection.endTime - newSection.startTime;
     }
-    setEditedSection(newSection)
-  }
+    setEditedSection(newSection);
+  };
 
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, "0")}`
-  }
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    const ms = Math.floor((seconds % 1) * 1000);
+    return `${mins}:${secs.toString().padStart(2, "0")}.${ms
+      .toString()
+      .padStart(3, "0")}`;
+  };
 
   return (
     <Card className="p-6 space-y-6">
@@ -66,7 +81,9 @@ export function SectionEditor({ section, onSave, onCancel }: SectionEditorProps)
           <Label>Section Type</Label>
           <Select
             value={editedSection.type}
-            onValueChange={(value) => setEditedSection({ ...editedSection, type: value as any })}
+            onValueChange={(value) =>
+              setEditedSection({ ...editedSection, type: value as any })
+            }
           >
             <SelectTrigger>
               <SelectValue />
@@ -88,10 +105,14 @@ export function SectionEditor({ section, onSave, onCancel }: SectionEditorProps)
           <Input
             type="number"
             value={editedSection.startTime}
-            onChange={(e) => handleTimeChange("startTime", Number(e.target.value))}
+            onChange={(e) =>
+              handleTimeChange("startTime", Number(e.target.value))
+            }
             min={0}
           />
-          <div className="text-xs text-muted-foreground">{formatTime(editedSection.startTime)}</div>
+          <div className="text-xs text-muted-foreground">
+            {formatTime(editedSection.startTime)}
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -99,17 +120,23 @@ export function SectionEditor({ section, onSave, onCancel }: SectionEditorProps)
           <Input
             type="number"
             value={editedSection.endTime}
-            onChange={(e) => handleTimeChange("endTime", Number(e.target.value))}
+            onChange={(e) =>
+              handleTimeChange("endTime", Number(e.target.value))
+            }
             min={editedSection.startTime}
           />
-          <div className="text-xs text-muted-foreground">{formatTime(editedSection.endTime)}</div>
+          <div className="text-xs text-muted-foreground">
+            {formatTime(editedSection.endTime)}
+          </div>
         </div>
       </div>
 
       {/* Duration Display */}
       <div className="p-3 bg-muted/20 rounded-lg">
         <div className="text-sm text-muted-foreground">Duration</div>
-        <div className="text-lg font-semibold">{formatTime(editedSection.duration)}</div>
+        <div className="text-lg font-semibold">
+          {formatTime(editedSection.duration)}
+        </div>
       </div>
 
       {/* Tone Attributes */}
@@ -120,11 +147,15 @@ export function SectionEditor({ section, onSave, onCancel }: SectionEditorProps)
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <Label>Energy Level</Label>
-            <span className="text-sm text-muted-foreground">{editedSection.toneAttributes.energy}%</span>
+            <span className="text-sm text-muted-foreground">
+              {editedSection.toneAttributes.energy}%
+            </span>
           </div>
           <Slider
             value={[editedSection.toneAttributes.energy]}
-            onValueChange={([value]) => handleToneAttributeChange("energy", value)}
+            onValueChange={([value]) =>
+              handleToneAttributeChange("energy", value)
+            }
             max={100}
             step={1}
             className="w-full"
@@ -135,11 +166,15 @@ export function SectionEditor({ section, onSave, onCancel }: SectionEditorProps)
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <Label>Intensity</Label>
-            <span className="text-sm text-muted-foreground">{editedSection.toneAttributes.intensity}%</span>
+            <span className="text-sm text-muted-foreground">
+              {editedSection.toneAttributes.intensity}%
+            </span>
           </div>
           <Slider
             value={[editedSection.toneAttributes.intensity]}
-            onValueChange={([value]) => handleToneAttributeChange("intensity", value)}
+            onValueChange={([value]) =>
+              handleToneAttributeChange("intensity", value)
+            }
             max={100}
             step={1}
             className="w-full"
@@ -153,21 +188,27 @@ export function SectionEditor({ section, onSave, onCancel }: SectionEditorProps)
             <div className="flex items-center space-x-2">
               <Switch
                 checked={editedSection.toneAttributes.strongStart}
-                onCheckedChange={(checked) => handleToneAttributeChange("strongStart", checked)}
+                onCheckedChange={(checked) =>
+                  handleToneAttributeChange("strongStart", checked)
+                }
               />
               <Label className="text-sm">Strong Start</Label>
             </div>
             <div className="flex items-center space-x-2">
               <Switch
                 checked={editedSection.toneAttributes.buildingUp}
-                onCheckedChange={(checked) => handleToneAttributeChange("buildingUp", checked)}
+                onCheckedChange={(checked) =>
+                  handleToneAttributeChange("buildingUp", checked)
+                }
               />
               <Label className="text-sm">Building Up</Label>
             </div>
             <div className="flex items-center space-x-2">
               <Switch
                 checked={editedSection.toneAttributes.slowingDown}
-                onCheckedChange={(checked) => handleToneAttributeChange("slowingDown", checked)}
+                onCheckedChange={(checked) =>
+                  handleToneAttributeChange("slowingDown", checked)
+                }
               />
               <Label className="text-sm">Slowing Down</Label>
             </div>
@@ -195,5 +236,5 @@ export function SectionEditor({ section, onSave, onCancel }: SectionEditorProps)
         </div>
       </div>
     </Card>
-  )
+  );
 }

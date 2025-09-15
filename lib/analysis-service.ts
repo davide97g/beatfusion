@@ -33,6 +33,7 @@ export class AnalysisService {
       }
 
       const analysis: AudioAnalysis = await response.json();
+      console.log(analysis.beat_times, analysis.segments_sec);
       return analysis;
     } catch (error) {
       console.error("Audio analysis error:", error);

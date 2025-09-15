@@ -40,11 +40,14 @@ def analyze():
         # 4. Beat tracking (BPM)
         tempo, beats = librosa.beat.beat_track(y=y, sr=sr)
         beat_times = librosa.frames_to_time(beats, sr=sr).tolist()
-
+        
         # 5. Segmentazione (Novelty-based segmentation)
+        seconds_per_bound = 30
+        duration = librosa.get_duration(y=y, sr=sr) 
+        bounds_number = int(duration/seconds_per_bound)
         # Chromagram + onset strength + segmentation
         chroma = librosa.feature.chroma_cqt(y=y, sr=sr)
-        boundaries = librosa.segment.agglomerative(chroma.T, k=4)
+        boundaries = librosa.segment.agglomerative(chroma, k=bounds_number)
         bound_times = librosa.frames_to_time(boundaries, sr=sr).tolist()
 
         # 6. Centroide spettrale (per "luminosità" del suono)
@@ -73,7 +76,7 @@ def analyze():
 
         result = {
             "sample_rate": sr,
-            "duration_sec": librosa.get_duration(y=y, sr=sr),
+            "duration_sec": duration,
             "energy_rms": rms,
             "spectrogram_db": spectrogram,
             "mfcc_mean": mfcc_mean,
@@ -83,6 +86,8 @@ def analyze():
             "spectral_centroid": spectral_centroid,
             "waveform_data": waveform_data
         }
+
+
 
         return jsonify(result)
 
