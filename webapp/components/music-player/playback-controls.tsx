@@ -21,6 +21,10 @@ import { useState } from "react";
 
 interface PlaybackControlsProps {
   currentMix: Mix | null;
+  isPlaying: boolean;
+  setIsPlaying: (isPlaying: boolean) => void;
+  currentTime: number;
+  setCurrentTime: (currentTime: number) => void;
 }
 
 export function PlaybackControls({ currentMix }: PlaybackControlsProps) {

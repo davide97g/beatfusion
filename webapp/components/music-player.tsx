@@ -1,6 +1,7 @@
 "use client";
 
 import { useAudioPlayer } from "@/hooks/use-audio-player";
+import { useToast } from "@/hooks/use-toast";
 import { AnalysisService } from "@/lib/analysis-service";
 import { generateSectionsFromAnalysis } from "@/lib/song-analysis-utils";
 import type { Mix, Song } from "@/types/music";
@@ -17,6 +18,7 @@ export function MusicPlayer() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
   const {
     previewInterval,
     stopPreview,
@@ -45,9 +47,12 @@ export function MusicPlayer() {
     // Check if analysis server is available
     const isServerAvailable = await AnalysisService.isServerAvailable();
     if (!isServerAvailable) {
-      alert(
-        "Analysis server is not available. Please make sure the Python server is running on port 3001."
-      );
+      toast({
+        title: "Server Unavailable",
+        description:
+          "Analysis server is not available. Please make sure the Python server is running on port 3001.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -62,9 +67,11 @@ export function MusicPlayer() {
 
     for (const file of Array.from(files)) {
       if (!validAudioTypes.includes(file.type)) {
-        alert(
-          `Unsupported file type: ${file.type}. Please upload MP3, WAV, or OGG files.`
-        );
+        toast({
+          title: "Unsupported File Type",
+          description: `${file.name}: ${file.type}. Please upload MP3, WAV, or OGG files.`,
+          variant: "destructive",
+        });
         continue;
       }
 
@@ -127,6 +134,12 @@ export function MusicPlayer() {
         console.log(`Analysis completed for: ${fileName}`, {
           sections: sections.length,
         });
+
+        // Show success toast for completed analysis
+        toast({
+          title: "Analysis Complete",
+          description: `${fileName} has been analyzed successfully!`,
+        });
       } catch (error) {
         console.error(`Analysis failed for: ${fileName}`, error);
 
@@ -142,9 +155,11 @@ export function MusicPlayer() {
           )
         );
 
-        alert(
-          `Analysis failed for ${fileName}. The song was uploaded but analysis could not be completed.`
-        );
+        toast({
+          title: "Analysis Failed",
+          description: `${fileName} was uploaded but analysis could not be completed.`,
+          variant: "destructive",
+        });
       }
     }
 
@@ -154,9 +169,10 @@ export function MusicPlayer() {
     }
 
     // Show success message
-    alert(
-      `Successfully uploaded ${files.length} song(s)! Analysis is in progress...`
-    );
+    toast({
+      title: "Songs Uploaded",
+      description: `Successfully uploaded ${files.length} song(s)! Analysis is in progress...`,
+    });
   };
 
   const handleUploadClick = () => {

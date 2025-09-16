@@ -8,6 +8,7 @@ export interface AudioAnalysis {
   beat_times: number[];
   segments_sec: number[];
   spectral_centroid: number[];
+  waveform_data: number[];
 }
 
 export interface AnalysisError {
