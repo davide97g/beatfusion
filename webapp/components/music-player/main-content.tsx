@@ -72,7 +72,7 @@ export function MainContent({
           />
         </TabsContent>
 
-        <TabsContent value="mix" className="flex-1">
+        <TabsContent value="mix" className="flex-1 min-h-0">
           <MixCreator
             songs={selectedSongs}
             currentMix={currentMix}

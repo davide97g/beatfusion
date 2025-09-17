@@ -3,8 +3,8 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import type { MixSection } from "@/types/music";
-import { Edit, GripVertical, Trash2 } from "lucide-react";
+import type { MixSection, Song } from "@/types/music";
+import { Edit, GripVertical, Play, Trash2 } from "lucide-react";
 import { useDrag, useDrop } from "react-dnd";
 
 interface DraggableSectionProps {
@@ -13,6 +13,7 @@ interface DraggableSectionProps {
   onMove: (dragIndex: number, dropIndex: number) => void;
   onEdit: (mixSection: MixSection) => void;
   onDelete: (mixSectionId: string) => void;
+  onPreviewInterval?: (song: Song, startTime: number, endTime: number) => void;
 }
 
 interface DragItem {
@@ -27,6 +28,7 @@ export function DraggableSection({
   onMove,
   onEdit,
   onDelete,
+  onPreviewInterval,
 }: DraggableSectionProps) {
   const [{ isDragging }, drag, dragPreview] = useDrag({
     type: "section",
@@ -69,6 +71,27 @@ export function DraggableSection({
           <div ref={drag} className="cursor-grab active:cursor-grabbing">
             <GripVertical className="w-4 h-4 text-muted-foreground" />
           </div>
+
+          {onPreviewInterval && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="p-1 h-6 w-6 flex-shrink-0"
+              onClick={() => {
+                const startTime =
+                  mixSection.customInterval?.start ||
+                  mixSection.section.startTime;
+                const endTime = Math.min(
+                  startTime + 10,
+                  mixSection.customInterval?.end || mixSection.section.endTime
+                );
+                onPreviewInterval(mixSection.song, startTime, endTime);
+              }}
+              title="Play 10s preview"
+            >
+              <Play className="w-3 h-3" />
+            </Button>
+          )}
 
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">

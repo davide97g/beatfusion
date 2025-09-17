@@ -57,6 +57,8 @@ function determineSectionType(
   if (index === 0) return "intro";
 
   // Last segment is usually outro
+  // With the backend change, we now have totalSegments boundaries (including song end)
+  // and create totalSegments - 1 sections, so the last section is at index totalSegments - 2
   if (index === totalSegments - 2) return "outro";
 
   // Middle segments - determine based on energy and duration

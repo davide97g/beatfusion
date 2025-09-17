@@ -3,21 +3,26 @@
 import type React from "react";
 
 import { Card } from "@/components/ui/card";
-import type { MixSection } from "@/types/music";
-import { useEffect, useRef } from "react";
+import type { MixSection, Song } from "@/types/music";
+import { useEffect, useRef, useState } from "react";
 
 interface MixTimelineProps {
   mixSections: MixSection[];
   currentTime?: number;
   onTimelineClick?: (time: number) => void;
+  onPreviewInterval?: (song: Song, startTime: number, endTime: number) => void;
 }
 
 export function MixTimeline({
   mixSections,
   currentTime = 0,
   onTimelineClick,
+  onPreviewInterval,
 }: MixTimelineProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [hoveredSectionIndex, setHoveredSectionIndex] = useState<number | null>(
+    null
+  );
 
   const totalDuration = mixSections.reduce((total, section) => {
     const sectionDuration =
@@ -86,31 +91,72 @@ export function MixTimeline({
           : mixSection.section.duration;
 
       const sectionWidth = (sectionDuration / totalDuration) * width;
-      const color = sectionColors[mixSection.section.type] || "#6366f1";
+      let color = sectionColors[mixSection.section.type] || "#6366f1";
+
+      // Add hover effect
+      if (hoveredSectionIndex === index) {
+        // Lighten the color for hover effect
+        const colorMap: Record<string, string> = {
+          "#0891b2": "#22d3ee", // intro - cyan
+          "#6366f1": "#818cf8", // verse - indigo
+          "#f59e0b": "#fbbf24", // chorus - amber
+          "#8b5cf6": "#a78bfa", // bridge - violet
+          "#4b5563": "#6b7280", // outro - gray
+          "#10b981": "#34d399", // instrumental - emerald
+          "#dc2626": "#f87171", // breakdown - red
+        };
+        color = colorMap[color] || color;
+      }
 
       // Draw section bar
       ctx.fillStyle = color;
-      ctx.fillRect(currentX, height / 2 - 15, sectionWidth, 30);
+      ctx.fillRect(currentX, height / 2 - 10, sectionWidth, 20);
 
       // Draw section border
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(currentX, height / 2 - 15, sectionWidth, 30);
+      ctx.strokeStyle = hoveredSectionIndex === index ? "#ffffff" : "#ffffff";
+      ctx.lineWidth = hoveredSectionIndex === index ? 3 : 2;
+      ctx.strokeRect(currentX, height / 2 - 10, sectionWidth, 20);
 
       // Draw section label if wide enough
-      if (sectionWidth > 60) {
+      if (sectionWidth > 50) {
         ctx.fillStyle = "#ffffff";
         ctx.font = "12px sans-serif";
         ctx.textAlign = "center";
+
+        // Draw song name above segment type
+        ctx.font = "bold 14px sans-serif";
+        ctx.fillStyle = "#000000";
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.strokeText(
+          mixSection.song.title.length > 30
+            ? mixSection.song.title.substring(0, 30) + "..."
+            : mixSection.song.title,
+          currentX + sectionWidth / 2,
+          height / 2 - 35
+        );
+        ctx.fillText(
+          mixSection.song.title.length > 30
+            ? mixSection.song.title.substring(0, 30) + "..."
+            : mixSection.song.title,
+          currentX + sectionWidth / 2,
+          height / 2 - 35
+        );
+
+        // Draw segment type inside the colored bar
+        ctx.font = "12px sans-serif";
+        ctx.fillStyle = "#ffffff";
         ctx.fillText(
           mixSection.section.type,
           currentX + sectionWidth / 2,
-          height / 2 - 2
+          height / 2 + 2
         );
+
+        // Draw duration below the bar
         ctx.fillText(
           formatTime(sectionDuration),
           currentX + sectionWidth / 2,
-          height / 2 + 12
+          height / 2 + 20
         );
       }
 
@@ -154,10 +200,32 @@ export function MixTimeline({
 
   useEffect(() => {
     drawTimeline();
-  }, [mixSections, currentTime, totalDuration]);
+  }, [mixSections, currentTime, totalDuration, hoveredSectionIndex]);
+
+  const getSectionAtPosition = (x: number, width: number) => {
+    let currentX = 0;
+
+    for (let i = 0; i < mixSections.length; i++) {
+      const mixSection = mixSections[i];
+      const sectionDuration =
+        mixSection.customEndTime && mixSection.customStartTime
+          ? mixSection.customEndTime - mixSection.customStartTime
+          : mixSection.section.duration;
+
+      const sectionWidth = (sectionDuration / totalDuration) * width;
+
+      if (x >= currentX && x <= currentX + sectionWidth) {
+        return { index: i, mixSection };
+      }
+
+      currentX += sectionWidth;
+    }
+
+    return null;
+  };
 
   const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!onTimelineClick || totalDuration === 0) return;
+    if (totalDuration === 0) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -166,7 +234,41 @@ export function MixTimeline({
     const x = event.clientX - rect.left;
     const clickTime = (x / rect.width) * totalDuration;
 
-    onTimelineClick(clickTime);
+    // Check if clicking on a section
+    const sectionAtClick = getSectionAtPosition(x, rect.width);
+
+    if (sectionAtClick && onPreviewInterval) {
+      const { mixSection } = sectionAtClick;
+      const startTime =
+        mixSection.customInterval?.start || mixSection.section.startTime;
+      const endTime = Math.min(
+        startTime + 10,
+        mixSection.customInterval?.end || mixSection.section.endTime
+      );
+      onPreviewInterval(mixSection.song, startTime, endTime);
+    } else if (onTimelineClick) {
+      // Fallback to timeline click for seeking
+      onTimelineClick(clickTime);
+    }
+  };
+
+  const handleCanvasMouseMove = (
+    event: React.MouseEvent<HTMLCanvasElement>
+  ) => {
+    if (totalDuration === 0) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const sectionAtPosition = getSectionAtPosition(x, rect.width);
+
+    setHoveredSectionIndex(sectionAtPosition?.index ?? null);
+  };
+
+  const handleCanvasMouseLeave = () => {
+    setHoveredSectionIndex(null);
   };
 
   return (
@@ -177,11 +279,13 @@ export function MixTimeline({
           Total Duration: {formatTime(totalDuration)}
         </div>
       </div>
-      <div className="w-full h-24 bg-muted/20 rounded-lg overflow-hidden">
+      <div className="w-full h-36 bg-muted/20 rounded-lg overflow-hidden">
         <canvas
           ref={canvasRef}
           className="w-full h-full cursor-pointer"
           onClick={handleCanvasClick}
+          onMouseMove={handleCanvasMouseMove}
+          onMouseLeave={handleCanvasMouseLeave}
           style={{ width: "100%", height: "100%" }}
         />
       </div>

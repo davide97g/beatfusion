@@ -42,13 +42,16 @@ def analyze():
         beat_times = librosa.frames_to_time(beats, sr=sr).tolist()
         
         # 5. Segmentazione (Novelty-based segmentation)
-        seconds_per_bound = 30
         duration = librosa.get_duration(y=y, sr=sr) 
-        bounds_number = int(duration/seconds_per_bound)
         # Chromagram + onset strength + segmentation
         chroma = librosa.feature.chroma_cqt(y=y, sr=sr)
-        boundaries = librosa.segment.agglomerative(chroma, k=bounds_number)
+        boundaries = librosa.segment.agglomerative(chroma, k=5)
         bound_times = librosa.frames_to_time(boundaries, sr=sr).tolist()
+        
+        # Add the start of the last boundary and song end as last bound time if not the last interval
+        if bound_times and bound_times[-1] < duration:
+            bound_times.append(duration)
+        
 
         # 6. Centroide spettrale (per "luminosità" del suono)
         spectral_centroid = librosa.feature.spectral_centroid(y=y, sr=sr)[0].tolist()

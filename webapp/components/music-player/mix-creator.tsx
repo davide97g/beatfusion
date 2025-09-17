@@ -255,45 +255,68 @@ export function MixCreator({
 
         {/* Mix Timeline */}
         {mixSections.length > 0 && (
-          <MixTimeline mixSections={mixSections} currentTime={currentTime} />
+          <MixTimeline
+            mixSections={mixSections}
+            currentTime={currentTime}
+            onPreviewInterval={previewInterval}
+          />
         )}
 
-        <div className="flex-1 flex gap-6">
+        <div className="flex-1 flex gap-6 min-h-0">
           {/* Available Sections */}
-          <div className="w-80 space-y-4">
+          <div className="w-96 lg:w-[32rem] xl:w-[36rem] 2xl:w-[40rem] flex flex-col space-y-4 min-h-0">
             <h3 className="text-lg font-semibold">Available Sections</h3>
-            <div className="space-y-3 max-h-96 overflow-y-auto">
+            <div className="flex-1 space-y-3 overflow-y-auto pr-2">
               {songs.map((song) => (
                 <Card key={song.id} className="p-4">
-                  <h4 className="font-medium mb-3">{song.title}</h4>
+                  <h4 className="font-medium mb-3 truncate" title={song.title}>
+                    {song.title}
+                  </h4>
                   <div className="space-y-2">
                     {song.sections?.map((section) => (
                       <div key={section.id} className="space-y-2">
                         <div className="flex items-center justify-between p-2 bg-muted/20 rounded">
-                          <div className="flex items-center gap-2 flex-1">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="p-1 h-6 w-6 flex-shrink-0"
+                              onClick={() => {
+                                const startTime = section.startTime;
+                                const endTime = Math.min(
+                                  section.startTime + 10,
+                                  section.endTime
+                                );
+                                previewInterval(song, startTime, endTime);
+                              }}
+                              title="Play 10s preview"
+                            >
+                              <Play className="w-3 h-3" />
+                            </Button>
                             <Badge
                               variant="outline"
-                              className="text-xs text-foreground bg-background"
+                              className="text-xs text-foreground bg-background flex-shrink-0"
                             >
                               {section.type}
                             </Badge>
-                            <span className="text-sm">
+                            <span className="text-sm flex-shrink-0">
                               {formatDuration(section.duration)}
                             </span>
                             <Badge
                               variant="outline"
-                              className="text-xs text-foreground bg-background"
+                              className="text-xs text-foreground bg-background flex-shrink-0"
                             >
                               {section.toneAttributes.mood}
                             </Badge>
                           </div>
-                          <div className="flex gap-1">
+                          <div className="flex gap-1 flex-shrink-0">
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() =>
                                 addSectionToMix(song.id, section.id)
                               }
+                              title="Add to mix"
                             >
                               <Plus className="w-3 h-3" />
                             </Button>
@@ -303,13 +326,14 @@ export function MixCreator({
                               onClick={() =>
                                 addCustomInterval(song.id, section.id)
                               }
+                              title="Custom interval"
                             >
                               <Scissors className="w-3 h-3" />
                             </Button>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground pl-2">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground pl-8">
                           <BarChart3 className="w-3 h-3" />
                           <span>Energy: {section.toneAttributes.energy}%</span>
                           <span>
@@ -325,8 +349,8 @@ export function MixCreator({
           </div>
 
           {/* Mix Builder */}
-          <div className="flex-1 space-y-4">
-            <Card className="p-6 flex-1">
+          <div className="flex-1 space-y-4 min-h-0">
+            <Card className="p-6 flex-1 flex flex-col min-h-0">
               <h3 className="text-lg font-semibold mb-4">Mix Sections</h3>
               {mixSections.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
@@ -340,7 +364,7 @@ export function MixCreator({
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3 max-h-96 overflow-y-auto">
+                <div className="flex-1 space-y-3 overflow-y-auto pr-2">
                   {mixSections.map((mixSection, index) => (
                     <DraggableSection
                       key={mixSection.id}
@@ -349,6 +373,7 @@ export function MixCreator({
                       onMove={moveMixSection}
                       onEdit={handleEditSection}
                       onDelete={removeSectionFromMix}
+                      onPreviewInterval={previewInterval}
                     />
                   ))}
                 </div>
